@@ -1,6 +1,8 @@
-name := """play-scala"""
+import play.PlayScala
 
-version := "1.0-SNAPSHOT"
+name := """greyscalr"""
+
+version := "0.1"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
@@ -10,5 +12,6 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  ws
+  ws,
+  "org.mongodb" %% "casbah" % "2.7.2"
 )
