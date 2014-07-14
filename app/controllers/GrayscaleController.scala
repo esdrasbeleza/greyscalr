@@ -1,10 +1,10 @@
 package controllers
 
-import play.api._
 import play.api.mvc._
 import java.io.File
 import java.util.UUID
 import models.ImageOperationStatus
+import play.api.libs.json.Json._
 
 object GrayscaleController extends Controller {
 
@@ -13,7 +13,7 @@ object GrayscaleController extends Controller {
     val fullPath = "/tmp/upload-" + uuid
     Action(parse.file(new File(fullPath))) { request =>
       val status = ImageOperationStatus.create(fullPath)
-      Created(status.id)
+      Created(toJson(status))
     }
   }
 
