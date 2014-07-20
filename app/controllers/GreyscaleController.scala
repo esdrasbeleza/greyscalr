@@ -7,7 +7,7 @@ import play.api.libs.json.Json._
 import javax.imageio.ImageIO
 import org.bson.types.ObjectId
 
-object GrayscaleController extends Controller {
+object GreyscaleController extends Controller {
 
   def create = {
     Action(parse.multipartFormData) { request =>
