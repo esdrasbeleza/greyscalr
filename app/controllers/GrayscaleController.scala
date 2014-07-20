@@ -9,11 +9,19 @@ import play.api.libs.json.Json._
 object GrayscaleController extends Controller {
 
   def create = {
-    val uuid = UUID.randomUUID().toString
-    val fullPath = "/tmp/upload-" + uuid
-    Action(parse.file(new File(fullPath))) { request =>
-      val status = ImageOperationStatus.create(fullPath)
-      Created(toJson(status))
+    Action(parse.multipartFormData) { request =>
+      val files = request.body.files
+      if (files.isEmpty) {
+        BadRequest("You should upload at least one file")
+      }
+      else {
+        val uuid = UUID.randomUUID().toString
+        val fullPath = "/tmp/upload-" + uuid + ".original"
+
+        files.head.ref.moveTo(new File(fullPath))
+        val status = ImageOperationStatus.create(uuid, fullPath)
+        Created(toJson(status))
+      }
     }
   }
 
