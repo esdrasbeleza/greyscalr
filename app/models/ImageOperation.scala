@@ -10,8 +10,11 @@ import play.api.Logger
 
 object ImageOperation {
   lazy val logger = Logger("ImageOperation")
+  val StatusCreated = "CREATED"
   val StatusConverting = "CONVERTING"
+  val StatusImageReady = "IMAGE READY"
   val StatusUploading = "UPLOADING"
+  val StatusUploaded = "FINISHED"
   val StatusError = "ERROR"
 
   implicit val imageOperationStatusReads: Reads[ImageOperation] = (
@@ -28,7 +31,7 @@ object ImageOperation {
 
   def create(id: String) = {
     val imageOperation = MongoDBObject("_id" -> new ObjectId(id),
-                                       "status" -> StatusConverting)
+                                       "status" -> StatusCreated)
     insertInMongo(imageOperation)
     new ImageOperation(id.toString, StatusConverting, None)
   }
