@@ -7,11 +7,11 @@ object MongoAccess {
   lazy val host = Play.application.configuration.getString("mongo.host")
   lazy val port = Play.application.configuration.getString("mongo.port").toInt
   lazy val databaseName = Play.application.configuration.getString("mongo.database")
+  lazy val mongoClient = MongoClient(host, port)
+  lazy val db = mongoClient(databaseName)
+  lazy val collection = db("image_operations")
 
-  def insert(mongoObject: MongoDBObject) = {
-    val mongoClient = MongoClient(host, port)
-    val db = mongoClient(databaseName)
-    val collection = db("image_operations")
-    collection.insert(mongoObject)
-  }
+  def insert(mongoObject: MongoDBObject) = collection.insert(mongoObject)
+
+  def findUsingId(id: String) = collection.findOneByID(new ObjectId(id))
 }

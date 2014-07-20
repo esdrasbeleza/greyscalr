@@ -6,6 +6,7 @@ import java.util.UUID
 import models.ImageOperationStatus
 import play.api.libs.json.Json._
 import javax.imageio.ImageIO
+import org.bson.types.ObjectId
 
 object GrayscaleController extends Controller {
 
@@ -16,13 +17,25 @@ object GrayscaleController extends Controller {
         BadRequest("You should upload at least one file")
       }
       else {
-        val uuid = UUID.randomUUID().toString
-        val fullPath = "/tmp/upload-" + uuid + ".original"
+        val id = new ObjectId()
+        val fullPath = "/tmp/upload-" + id.toString + ".original"
 
         files.head.ref.moveTo(new File(fullPath))
-        val status = ImageOperationStatus.create(uuid, fullPath)
-        convertImageToGrayScale(fullPath, "/tmp/" + uuid + ".png")
+        val status = ImageOperationStatus.create(id, fullPath)
+        convertImageToGrayScale(fullPath, "/tmp/" + id.toString + ".png")
         Created(toJson(status))
+      }
+    }
+  }
+
+  def getStatus(id: String) = {
+    Action { request =>
+      try {
+        val status = ImageOperationStatus.read(id)
+        Ok(toJson(status))
+      }
+      catch {
+        case e: NoSuchElementException => NotFound("Can't find element")
       }
     }
   }

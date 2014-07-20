@@ -4,6 +4,7 @@ import com.mongodb.casbah.Imports._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import db.MongoAccess.{ insert => insertInMongo }
+import db.MongoAccess.{ findUsingId => getFromMongWithId }
 import play.api.Logger
 
 object ImageOperationStatus {
@@ -23,12 +24,22 @@ object ImageOperationStatus {
         (JsPath \ "URL").writeNullable[String]
     )(unlift(unapply))
 
-  def create(id: String, localPath: String) = {
+  def create(id: ObjectId, localPath: String) = {
     val imageOperation = MongoDBObject("_id" -> id,
                                        "status" -> StatusConverting,
                                        "localPath" -> localPath)
     insertInMongo(imageOperation)
-    new ImageOperationStatus(id, StatusConverting, None)
+    new ImageOperationStatus(id.toString, StatusConverting, None)
+  }
+
+  def read(id: String) = {
+    val statusInDatabase = getFromMongWithId(id).get
+    val status = statusInDatabase.get("status").asInstanceOf[String]
+    val url = statusInDatabase.get("url") match {
+      case url: String => Some(url)
+      case _ => None
+    }
+    new ImageOperationStatus(id, status, url)
   }
 
 }

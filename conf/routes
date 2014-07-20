@@ -7,6 +7,7 @@ GET     /                           controllers.Application.index
 
 # Image Controller
 POST  /convert                      controllers.GrayscaleController.create
+GET   /convert/:id                  controllers.GrayscaleController.getStatus(id: String)
 
 
 # Map static resources from the /public folder to the /assets URL path
