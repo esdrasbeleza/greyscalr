@@ -33,7 +33,7 @@ object ImageOperation {
     val imageOperation = MongoDBObject("_id" -> new ObjectId(id),
                                        "status" -> StatusCreated)
     insertInMongo(imageOperation)
-    new ImageOperation(id.toString, StatusConverting, None)
+    new ImageOperation(id.toString, StatusCreated, None)
   }
 
   def read(id: String) = {
