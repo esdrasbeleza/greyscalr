@@ -5,6 +5,7 @@ import javax.imageio.ImageIO
 import java.io.File
 import actors.ImageEditor.ConvertToGreyscale
 import models.{ImageOperationStatus, ImageOperation}
+import ImageOperation.updateStatus
 
 object ImageEditor {
   val name = "ImageEditor"
@@ -17,17 +18,17 @@ class ImageEditor extends Actor {
   def receive = {
     case operation: ConvertToGreyscale => {
       try {
-        ImageOperation.updateStatus(operation.operationId, ImageOperationStatus.StatusConverting)
-        convertImageToGrayScale(operation.input, operation.output)
-        ImageOperation.updateStatus(operation.operationId, ImageOperationStatus.StatusImageReady)
+        updateStatus(operation.operationId, ImageOperationStatus.StatusConverting)
+        convertImageToGreyScale(operation.input, operation.output)
+        updateStatus(operation.operationId, ImageOperationStatus.StatusImageReady)
       }
       catch {
-        case _ => ImageOperation.updateStatus(operation.operationId, ImageOperationStatus.StatusError)
+        case _ => updateStatus(operation.operationId, ImageOperationStatus.StatusError)
       }
     }
   }
 
-  def convertImageToGrayScale(input: String, output: String) = {
+  def convertImageToGreyScale(input: String, output: String) = {
     val image = ImageIO.read(new File(input))
 
     val width = image.getWidth
