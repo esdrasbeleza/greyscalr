@@ -2,8 +2,7 @@ package controllers
 
 import play.api.mvc._
 import java.io.File
-import java.util.UUID
-import models.ImageOperationStatus
+import models.ImageOperation
 import play.api.libs.json.Json._
 import javax.imageio.ImageIO
 import org.bson.types.ObjectId
@@ -21,7 +20,7 @@ object GrayscaleController extends Controller {
         val fullPath = "/tmp/upload-" + id.toString + ".original"
 
         files.head.ref.moveTo(new File(fullPath))
-        val status = ImageOperationStatus.create(id, fullPath)
+        val status = ImageOperation.create(id, fullPath)
         convertImageToGrayScale(fullPath, "/tmp/" + id.toString + ".png")
         Created(toJson(status))
       }
@@ -31,7 +30,7 @@ object GrayscaleController extends Controller {
   def getStatus(id: String) = {
     Action { request =>
       try {
-        val status = ImageOperationStatus.read(id)
+        val status = ImageOperation.read(id)
         Ok(toJson(status))
       }
       catch {

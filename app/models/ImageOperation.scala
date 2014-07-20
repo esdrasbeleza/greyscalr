@@ -7,18 +7,18 @@ import db.MongoAccess.{ insert => insertInMongo }
 import db.MongoAccess.{ findUsingId => getFromMongWithId }
 import play.api.Logger
 
-object ImageOperationStatus {
+object ImageOperation {
   lazy val logger = Logger("ImageOperation")
   val StatusConverting = "CONVERTING"
   val StatusUploading = "UPLOADING"
 
-  implicit val imageOperationStatusReads: Reads[ImageOperationStatus] = (
+  implicit val imageOperationStatusReads: Reads[ImageOperation] = (
       (JsPath \ "id").read[String] and
       (JsPath \ "status").read[String] and
       (JsPath \ "URL").readNullable[String]
     )(apply _)
 
-  implicit val imageOperationStatusWrites: Writes[ImageOperationStatus] = (
+  implicit val imageOperationStatusWrites: Writes[ImageOperation] = (
       (JsPath \ "id").write[String] and
       (JsPath \ "status").write[String] and
         (JsPath \ "URL").writeNullable[String]
@@ -29,7 +29,7 @@ object ImageOperationStatus {
                                        "status" -> StatusConverting,
                                        "localPath" -> localPath)
     insertInMongo(imageOperation)
-    new ImageOperationStatus(id.toString, StatusConverting, None)
+    new ImageOperation(id.toString, StatusConverting, None)
   }
 
   def read(id: String) = {
@@ -39,9 +39,9 @@ object ImageOperationStatus {
       case url: String => Some(url)
       case _ => None
     }
-    new ImageOperationStatus(id, status, url)
+    new ImageOperation(id, status, url)
   }
 
 }
 
-case class ImageOperationStatus(val id: String, val status: String, val url: Option[String] = None)
+case class ImageOperation(val id: String, val status: String, val url: Option[String] = None)
