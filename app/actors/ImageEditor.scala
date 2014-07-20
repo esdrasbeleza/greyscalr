@@ -17,8 +17,9 @@ class ImageEditor extends Actor {
   def receive = {
     case operation: ConvertToGreyscale => {
       try {
+        ImageOperation.updateStatus(operation.operationId, ImageOperation.StatusConverting)
         convertImageToGrayScale(operation.input, operation.output)
-        ImageOperation.updateStatus(operation.operationId, ImageOperation.StatusUploading)
+        ImageOperation.updateStatus(operation.operationId, ImageOperation.StatusImageReady)
       }
       catch {
         case _ => ImageOperation.updateStatus(operation.operationId, ImageOperation.StatusError)
