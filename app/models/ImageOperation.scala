@@ -5,12 +5,14 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import db.MongoAccess.{ insert => insertInMongo }
 import db.MongoAccess.{ findUsingId => getFromMongWithId }
+import db.MongoAccess.{ update => updateInMongo }
 import play.api.Logger
 
 object ImageOperation {
   lazy val logger = Logger("ImageOperation")
   val StatusConverting = "CONVERTING"
   val StatusUploading = "UPLOADING"
+  val StatusError = "ERROR"
 
   implicit val imageOperationStatusReads: Reads[ImageOperation] = (
       (JsPath \ "id").read[String] and
@@ -24,10 +26,9 @@ object ImageOperation {
         (JsPath \ "URL").writeNullable[String]
     )(unlift(unapply))
 
-  def create(id: ObjectId, localPath: String) = {
-    val imageOperation = MongoDBObject("_id" -> id,
-                                       "status" -> StatusConverting,
-                                       "localPath" -> localPath)
+  def create(id: String) = {
+    val imageOperation = MongoDBObject("_id" -> new ObjectId(id),
+                                       "status" -> StatusConverting)
     insertInMongo(imageOperation)
     new ImageOperation(id.toString, StatusConverting, None)
   }
@@ -42,6 +43,16 @@ object ImageOperation {
     new ImageOperation(id, status, url)
   }
 
+  def updateStatus(id: String, newStatus: String) = read(id).copy(status = newStatus).save()
+
 }
 
-case class ImageOperation(val id: String, val status: String, val url: Option[String] = None)
+case class ImageOperation(val id: String, val status: String, val url: Option[String] = None) {
+
+  def save() {
+    val imageOperation = MongoDBObject("status" -> status,
+                                       "url" -> url)
+    updateInMongo(id, imageOperation)
+  }
+
+}

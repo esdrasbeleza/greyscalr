@@ -14,4 +14,6 @@ object MongoAccess {
   def insert(mongoObject: MongoDBObject) = collection.insert(mongoObject)
 
   def findUsingId(id: String) = collection.findOneByID(new ObjectId(id))
+
+  def update(id: String, mongoObject: MongoDBObject) = collection.update(MongoDBObject("_id" -> new ObjectId(id)), mongoObject, true)
 }
