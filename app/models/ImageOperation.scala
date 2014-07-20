@@ -8,14 +8,19 @@ import db.MongoAccess.{ findUsingId => getFromMongWithId }
 import db.MongoAccess.{ update => updateInMongo }
 import play.api.Logger
 
-object ImageOperation {
-  lazy val logger = Logger("ImageOperation")
+object ImageOperationStatus {
   val StatusCreated = "CREATED"
   val StatusConverting = "CONVERTING"
   val StatusImageReady = "IMAGE READY"
   val StatusUploading = "UPLOADING"
   val StatusUploaded = "FINISHED"
   val StatusError = "ERROR"
+}
+
+object ImageOperation {
+  import ImageOperationStatus._
+
+  lazy val logger = Logger("ImageOperation")
 
   implicit val imageOperationStatusReads: Reads[ImageOperation] = (
       (JsPath \ "id").read[String] and

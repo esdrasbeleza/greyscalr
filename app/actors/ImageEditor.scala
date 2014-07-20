@@ -4,7 +4,7 @@ import akka.actor.Actor
 import javax.imageio.ImageIO
 import java.io.File
 import actors.ImageEditor.ConvertToGreyscale
-import models.ImageOperation
+import models.{ImageOperationStatus, ImageOperation}
 
 object ImageEditor {
   val name = "ImageEditor"
@@ -17,12 +17,12 @@ class ImageEditor extends Actor {
   def receive = {
     case operation: ConvertToGreyscale => {
       try {
-        ImageOperation.updateStatus(operation.operationId, ImageOperation.StatusConverting)
+        ImageOperation.updateStatus(operation.operationId, ImageOperationStatus.StatusConverting)
         convertImageToGrayScale(operation.input, operation.output)
-        ImageOperation.updateStatus(operation.operationId, ImageOperation.StatusImageReady)
+        ImageOperation.updateStatus(operation.operationId, ImageOperationStatus.StatusImageReady)
       }
       catch {
-        case _ => ImageOperation.updateStatus(operation.operationId, ImageOperation.StatusError)
+        case _ => ImageOperation.updateStatus(operation.operationId, ImageOperationStatus.StatusError)
       }
     }
   }
