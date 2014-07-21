@@ -37,6 +37,7 @@ Calling `/convert/{id}` using GET, you can obtain the current workflow status:
 * `UPLOADING`: the image is being uploaded.
 * `FINISHED`: the image was converted and uploaded. At this point, a URL should
 be available.
+* `ERROR`: oops. Something went wrong.
 
 ## TO DO
 
