@@ -31,9 +31,11 @@ Calling `/convert/{id}` using GET, you can obtain the current workflow status:
 
 ## Possible status
 
-To be documented 
+* `CREATED`: the image was registered in MongoDB and should be converted soon.
+* `CONVERTING`: the image is under conversion to greyscale.
+* `IMAGE READY`: the image was converted and is ready to upload.
+* `UPLOADING`: the image is being uploaded.
+* `FINISHED`: the image was converted and uploaded. At this point, a URL should
+be available.
 
-## Final status
-
-To be documented
 
