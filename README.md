@@ -38,4 +38,9 @@ Calling `/convert/{id}` using GET, you can obtain the current workflow status:
 * `FINISHED`: the image was converted and uploaded. At this point, a URL should
 be available.
 
+## TO DO
+
+* Upload converted image
+* Automated tests
+* Code always can be improved
 
