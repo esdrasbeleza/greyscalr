@@ -13,5 +13,6 @@ libraryDependencies ++= Seq(
   anorm,
   cache,
   ws,
-  "org.mongodb" %% "casbah" % "2.7.2"
+  "org.mongodb" %% "casbah" % "2.7.2",
+  "com.amazonaws" % "aws-java-sdk" % "1.8.5"
 )
