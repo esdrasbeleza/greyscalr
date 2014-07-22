@@ -23,7 +23,7 @@ class ImageEditor extends Actor {
         updateStatus(operation.operationId, ImageOperationStatus.StatusImageReady)
       }
       catch {
-        case _ => updateStatus(operation.operationId, ImageOperationStatus.StatusError)
+        case _: Throwable => updateStatus(operation.operationId, ImageOperationStatus.StatusError)
       }
     }
   }
