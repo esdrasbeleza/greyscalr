@@ -3,13 +3,13 @@ package actors
 import akka.actor.Actor
 import javax.imageio.ImageIO
 import java.io.File
-import actors.ImageEditor.ConvertToGreyscale
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.services.glacier.model.{AbortMultipartUploadRequest, CompleteMultipartUploadRequest}
 import com.amazonaws.services.s3.AmazonS3Client
-import com.amazonaws.services.s3.model.{UploadPartRequest, InitiateMultipartUploadRequest, PartETag}
 import models.{ImageOperationStatus, ImageOperation}
 import ImageOperation.updateStatus
+import actors.ImageEditor.ConvertToGreyscale
+import play.api.Logger
+import com.amazonaws.services.s3.model.{CannedAccessControlList, PutObjectRequest}
 
 object ImageEditor {
   val name = "ImageEditor"
@@ -25,10 +25,17 @@ class ImageEditor extends Actor {
         updateStatus(operation.operationId, ImageOperationStatus.StatusConverting)
         convertImageToGreyScale(operation.input, operation.output)
         updateStatus(operation.operationId, ImageOperationStatus.StatusImageReady)
-        uploadImageToS3(operation.output)
+        val url = uploadImageToS3(operation.operationId, operation.output)
+        updateStatus(operation.operationId, ImageOperationStatus.StatusUploaded, Some(url))
       }
       catch {
-        case _: Throwable => updateStatus(operation.operationId, ImageOperationStatus.StatusError)
+        /*
+         * TODO: handle AmazonServiceException and AmazonServiceException
+         */
+        case e: Throwable => {
+          Logger(ImageEditor.name).error(e.getMessage)
+          updateStatus(operation.operationId, ImageOperationStatus.StatusError)
+        }
       }
     }
   }
@@ -57,46 +64,14 @@ class ImageEditor extends Actor {
     ImageIO.write(image, "PNG", new File(output))
   }
 
-  def uploadImageToS3(filePath: String) {
-    val bucketname = "greyscalr"
-    val keyName = "myKey"
+  def uploadImageToS3(keyName: String, filePath: String) = {
+    val bucketName = "greyscalr"
 
     val s3Client = new AmazonS3Client(new ProfileCredentialsProvider())
-    val partETags = List[PartETag]()
-
-    val initRequest = new InitiateMultipartUploadRequest(bucketname, keyName)
-    val initResponse = s3Client.initiateMultipartUpload(initRequest)
-
     val file = new File(filePath)
-    val contentLength = file.length
-    val partSize = 5242880
-
-    try {
-        def uploadPart(i: Int, filePosition: Long, currentPartETags: List[PartETag]): List[PartETag] = {
-          if (filePosition < contentLength) {
-            val currentPart = Math.min(partSize, (contentLength - filePosition))
-            val uploadRequest = new UploadPartRequest().withBucketName(bucketname)
-              .withUploadId(initResponse.getUploadId)
-              .withPartNumber(i)
-              .withFileOffset(filePosition)
-              .withFile(file)
-              .withPartSize(partSize)
-
-            val partETag = s3Client.uploadPart(uploadRequest).getPartETag
-            currentPartETags :: uploadPart(i + 1, filePosition + partSize, currentPartETags :+ partETag)
-          }
-          else {
-            currentPartETags
-          }
-        }
-
-      val finalPartEtags = uploadPart(1, 0, partETags)
-      val compRequest = new CompleteMultipartUploadRequest(bucketname, keyName, initResponse.getUploadId, finalPartEtags)
-      s3Client.completeMultipartUpload(compRequest)
-    }
-    catch {
-      case e: Throwable => s3Client.abortMultipartUpload(new AbortMultipartUploadRequest(bucketname, keyName, initResponse.getUploadId))
-    }
+    // TODO: set expiration time
+    s3Client.putObject(new PutObjectRequest(bucketName, keyName, file).withCannedAcl(CannedAccessControlList.PublicRead))
+    "http://missingurl.com"
   }
 
 }

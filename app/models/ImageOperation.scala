@@ -51,7 +51,7 @@ object ImageOperation {
     new ImageOperation(id, status, url)
   }
 
-  def updateStatus(id: String, newStatus: String) = read(id).copy(status = newStatus).save()
+  def updateStatus(id: String, newStatus: String, newUrl: Option[String] = None) = read(id).copy(status = newStatus, url = newUrl).save()
 
 }
 
