@@ -71,7 +71,7 @@ class ImageEditor extends Actor {
     val file = new File(filePath)
     // TODO: set expiration time
     s3Client.putObject(new PutObjectRequest(bucketName, keyName, file).withCannedAcl(CannedAccessControlList.PublicRead))
-    "http://missingurl.com"
+    s3Client.getUrl(bucketName, keyName).toString
   }
 
 }
