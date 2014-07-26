@@ -12,7 +12,12 @@ import actors.ImageEditor.ConvertToGreyscale
 object GreyscaleController extends Controller {
   lazy val imageEditor = ActorSystem("Greyscalr").actorOf(Props[ImageEditor], name = "ImageEditor")
 
-  def create = {
+  def list() = Action { request =>
+    val jsonList = ImageOperation.list().map(toJson(_)).toSeq
+    Ok(toJson(jsonList))
+  }
+
+  def create() = {
     Action(parse.multipartFormData) { request =>
       val files = request.body.files
       if (files.isEmpty) {

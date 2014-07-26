@@ -15,5 +15,7 @@ object MongoAccess {
 
   def findUsingId(id: String) = collection.findOneByID(new ObjectId(id))
 
+  def findAll() = collection.find()
+
   def update(id: String, mongoObject: MongoDBObject) = collection.update(MongoDBObject("_id" -> new ObjectId(id)), mongoObject, true)
 }

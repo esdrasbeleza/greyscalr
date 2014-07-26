@@ -6,7 +6,10 @@ import play.api.libs.functional.syntax._
 import db.MongoAccess.{ insert => insertInMongo }
 import db.MongoAccess.{ findUsingId => getFromMongWithId }
 import db.MongoAccess.{ update => updateInMongo }
+import db.MongoAccess.findAll
 import play.api.Logger
+import com.mongodb.Mongo
+import db.MongoAccess
 
 object ImageOperationStatus {
   val StatusCreated = "CREATED"
@@ -34,6 +37,12 @@ object ImageOperation {
         (JsPath \ "URL").writeNullable[String]
     )(unlift(unapply))
 
+  def list() = {
+    findAll().map{ operation =>
+      convertMongoEntryToImageOperation(operation)
+    }
+  }
+
   def create(id: String) = {
     val imageOperation = MongoDBObject("_id" -> new ObjectId(id),
                                        "status" -> StatusCreated)
@@ -43,6 +52,11 @@ object ImageOperation {
 
   def read(id: String) = {
     val statusInDatabase = getFromMongWithId(id).get
+    convertMongoEntryToImageOperation(statusInDatabase)
+  }
+
+  def convertMongoEntryToImageOperation(statusInDatabase: DBObject): ImageOperation = {
+    val id = statusInDatabase.get("_id").toString
     val status = statusInDatabase.get("status").asInstanceOf[String]
     val url = statusInDatabase.get("url") match {
       case url: String => Some(url)
