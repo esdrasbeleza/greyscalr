@@ -1,10 +1,11 @@
 # Greyscalr
 
 This is a dummy project written in Scala. Its main use is to study Scala and
-some related Stuff, like Play and Akka.
+some related Stuff, like Play and Akka. I'm using MongoDB to store data.
 
 It's a Play application that will run a webservice that receives a image via
-POST and converts it to a greyscale image.
+POST and converts it to a greyscale image. After that the image is uploaded to
+Amazon S3 and our webservice provides an URL to download.
 
 ## Uploading an image using POST
 
@@ -29,6 +30,9 @@ Calling `/convert/{id}` using GET, you can obtain the current workflow status:
 }
 ```
 
+Calling `/convert` (without an id!), you will receive a list of all available
+image conversions.
+
 ## Possible status
 
 * `CREATED`: the image was registered in MongoDB and should be converted soon.
@@ -41,7 +45,6 @@ be available.
 
 ## TO DO
 
-* Upload converted image
 * Automated tests
 * Code always can be improved
 
