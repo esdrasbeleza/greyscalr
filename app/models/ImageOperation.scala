@@ -2,14 +2,11 @@ package models
 
 import com.mongodb.casbah.Imports._
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
 import db.MongoAccess.{ insert => insertInMongo }
 import db.MongoAccess.{ findUsingId => getFromMongWithId }
 import db.MongoAccess.{ update => updateInMongo }
 import db.MongoAccess.findAll
 import play.api.Logger
-import com.mongodb.Mongo
-import db.MongoAccess
 
 object ImageOperationStatus {
   val StatusCreated = "CREATED"
@@ -25,17 +22,9 @@ object ImageOperation {
 
   lazy val logger = Logger("ImageOperation")
 
-  implicit val imageOperationStatusReads: Reads[ImageOperation] = (
-      (JsPath \ "id").read[String] and
-      (JsPath \ "status").read[String] and
-      (JsPath \ "URL").readNullable[String]
-    )(apply _)
+  implicit val imageOperationStatusReads = Json.reads[ImageOperation]
 
-  implicit val imageOperationStatusWrites: Writes[ImageOperation] = (
-      (JsPath \ "id").write[String] and
-      (JsPath \ "status").write[String] and
-        (JsPath \ "URL").writeNullable[String]
-    )(unlift(unapply))
+  implicit val imageOperationStatusWrites = Json.writes[ImageOperation]
 
   def list() = {
     findAll().map{ operation =>
