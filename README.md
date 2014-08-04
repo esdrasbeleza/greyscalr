@@ -3,14 +3,15 @@
 This is a dummy project written in Scala. Its main use is to study Scala and
 some related Stuff, like Play and Akka. I'm using MongoDB to store data.
 
-It's a Play application that will run a webservice that receives a image via
-POST and converts it to a greyscale image. After that the image is uploaded to
-Amazon S3 and our webservice provides an URL to download.
+Greyscalr is a Play application that will run a web service that receives an
+image via POST and converts it to a greyscale image. After that the image is 
+uploaded  to Amazon S3 and our web service will provide an URL to download the
+greyscaled image.
 
 ## Uploading an image using POST
 
-To upload an image, you must use a POST method with an attached image to
-`/convert`. The web service will return this answer like this:
+To upload an image, you must use a POST method with the image attached to
+`/convert`. The web service will return an answer like this:
 
 ```json
 {
@@ -30,7 +31,7 @@ Calling `/convert/{id}` using GET, you can obtain the current workflow status:
 }
 ```
 
-Calling `/convert` (without an id!), you will receive a list of all available
+Calling `/convert` (without an id!), you can receive a list of all available
 image conversions.
 
 ## Possible status
