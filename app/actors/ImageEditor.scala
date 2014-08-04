@@ -1,19 +1,24 @@
 package actors
 
-import akka.actor.Actor
+import java.util.concurrent.Executors
+
+import actors.FileUploader.UploadFile
+import akka.actor.{Props, ActorSystem, Actor}
 import javax.imageio.ImageIO
 import java.io.File
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
-import com.amazonaws.services.s3.AmazonS3Client
 import models.{ImageOperationStatus, ImageOperation}
 import ImageOperation.updateStatus
+import akka.pattern.ask
 import actors.ImageEditor.ConvertToGreyscale
 import play.api.Logger
-import com.amazonaws.services.s3.model.{CannedAccessControlList, PutObjectRequest}
+import akka.util.Timeout
+import scala.concurrent.duration._
+import scala.concurrent.{Future, Await, ExecutionContext, Promise}
+
+import scala.util.{Failure, Success}
 
 object ImageEditor {
   val name = "ImageEditor"
-
   case class ConvertToGreyscale(val operationId: String, val input: String, val output: String)
 }
 
@@ -25,8 +30,12 @@ class ImageEditor extends Actor {
         updateStatus(operation.operationId, ImageOperationStatus.StatusConverting)
         convertImageToGreyScale(operation.input, operation.output)
         updateStatus(operation.operationId, ImageOperationStatus.StatusImageReady)
-        val url = uploadImageToS3(operation.operationId, operation.output)
-        updateStatus(operation.operationId, ImageOperationStatus.StatusUploaded, Some(url))
+
+        implicit val timeout = Timeout(5 seconds)
+        val imageUploader = ActorSystem("Greyscalr").actorOf(Props[FileUploader], name = "ImageEditor")
+        val futureUrl = imageUploader ? UploadFile("greyscalr", operation.operationId, operation.output)
+        val url = Await.result(futureUrl, timeout.duration).asInstanceOf[String]
+        updateStatus(operation.operationId, ImageOperationStatus.StatusUploaded, Some(url.toString))
       }
       catch {
         /*
@@ -62,16 +71,6 @@ class ImageEditor extends Actor {
       image.setRGB(i, j, newRgbValue)
     }
     ImageIO.write(image, "PNG", new File(output))
-  }
-
-  def uploadImageToS3(keyName: String, filePath: String) = {
-    val bucketName = "greyscalr"
-
-    val s3Client = new AmazonS3Client(new ProfileCredentialsProvider())
-    val file = new File(filePath)
-    // TODO: set expiration time
-    s3Client.putObject(new PutObjectRequest(bucketName, keyName, file).withCannedAcl(CannedAccessControlList.PublicRead))
-    s3Client.getUrl(bucketName, keyName).toString
   }
 
 }
