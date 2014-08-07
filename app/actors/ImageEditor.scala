@@ -31,7 +31,7 @@ class ImageEditor extends Actor {
         convertImageToGreyScale(operation.input, operation.output)
         updateStatus(operation.operationId, ImageOperationStatus.StatusImageReady)
 
-        implicit val timeout = Timeout(5 seconds)
+        implicit val timeout = Timeout(180 seconds)
         val imageUploader = ActorSystem("Greyscalr").actorOf(Props[FileUploader], name = "ImageEditor")
         val futureUrl = imageUploader ? UploadFile("greyscalr", operation.operationId, operation.output)
         val url = Await.result(futureUrl, timeout.duration).asInstanceOf[String]
