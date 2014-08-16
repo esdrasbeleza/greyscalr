@@ -6,11 +6,11 @@ import models.ImageOperation
 import play.api.libs.json.Json._
 import org.bson.types.ObjectId
 import akka.actor.{Props, ActorSystem}
-import actors.ImageEditor
-import actors.ImageEditor.ConvertToGreyscale
+import actors.ImageSupervisor
+import actors.ImageSupervisor.HandleOperation
 
 object GreyscaleController extends Controller {
-  lazy val imageEditor = ActorSystem("Greyscalr").actorOf(Props[ImageEditor], name = "ImageEditor")
+  lazy val imageHandler = ActorSystem("Greyscalr").actorOf(Props[ImageSupervisor], name = "ImageHandler")
 
   def list() = Action { request =>
     val jsonList = ImageOperation.list().map(toJson(_)).toSeq
@@ -29,8 +29,7 @@ object GreyscaleController extends Controller {
 
         files.head.ref.moveTo(new File(fullPath))
         val status = ImageOperation.create(id.toString)
-
-        imageEditor ! ConvertToGreyscale(id.toString, fullPath, "/tmp/" + id.toString + ".png")
+        imageHandler ! HandleOperation(id.toString, fullPath)
 
         Created(toJson(status))
       }

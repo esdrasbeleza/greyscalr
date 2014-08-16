@@ -1,25 +1,17 @@
 package actors
 
-import java.util.concurrent.Executors
 
-import actors.FileUploader.UploadFile
-import akka.actor.{Props, ActorSystem, Actor}
+import akka.actor.Actor
 import javax.imageio.ImageIO
 import java.io.File
-import models.{ImageOperationStatus, ImageOperation}
-import ImageOperation.updateStatus
-import akka.pattern.ask
 import actors.ImageEditor.ConvertToGreyscale
-import play.api.Logger
-import akka.util.Timeout
-import scala.concurrent.duration._
-import scala.concurrent.{Future, Await, ExecutionContext, Promise}
 
-import scala.util.{Failure, Success}
+import actors.ImageSupervisor.{OperationError, ImageReady}
 
 object ImageEditor {
-  val name = "ImageEditor"
-  case class ConvertToGreyscale(val operationId: String, val input: String, val output: String)
+
+  case class ConvertToGreyscale(val operationId: String, val input: String)
+
 }
 
 class ImageEditor extends Actor {
@@ -27,24 +19,12 @@ class ImageEditor extends Actor {
   def receive = {
     case operation: ConvertToGreyscale => {
       try {
-        updateStatus(operation.operationId, ImageOperationStatus.StatusConverting)
-        convertImageToGreyScale(operation.input, operation.output)
-        updateStatus(operation.operationId, ImageOperationStatus.StatusImageReady)
-
-        implicit val timeout = Timeout(180 seconds)
-        val imageUploader = ActorSystem("Greyscalr").actorOf(Props[FileUploader], name = "ImageEditor")
-        val futureUrl = imageUploader ? UploadFile("greyscalr", operation.operationId, operation.output)
-        val url = Await.result(futureUrl, timeout.duration).asInstanceOf[String]
-        updateStatus(operation.operationId, ImageOperationStatus.StatusUploaded, Some(url.toString))
+        val output = "/tmp/" + operation.operationId.toString + ".png"
+        convertImageToGreyScale(operation.input, output)
+        sender ! ImageReady(operation.operationId, output)
       }
       catch {
-        /*
-         * TODO: handle AmazonServiceException and AmazonServiceException
-         */
-        case e: Throwable => {
-          Logger(ImageEditor.name).error(e.getMessage)
-          updateStatus(operation.operationId, ImageOperationStatus.StatusError)
-        }
+        case e: Throwable => sender ! OperationError(operation.operationId, getClass.getName, e.getMessage)
       }
     }
   }

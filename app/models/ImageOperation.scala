@@ -11,7 +11,6 @@ import play.api.Logger
 object ImageOperationStatus {
   val StatusCreated = "CREATED"
   val StatusConverting = "CONVERTING"
-  val StatusImageReady = "IMAGE READY"
   val StatusUploading = "UPLOADING"
   val StatusUploaded = "FINISHED"
   val StatusError = "ERROR"
