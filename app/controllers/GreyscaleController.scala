@@ -1,20 +1,26 @@
 package controllers
 
+import java.util.UUID
+
+import dao.ImageOperationDAO
+import models.ImageOperation
 import play.api.mvc._
 import java.io.File
-import models.ImageOperation
 import play.api.libs.json.Json._
-import org.bson.types.ObjectId
 import akka.actor.{Props, ActorSystem}
 import actors.ImageSupervisor
 import actors.ImageSupervisor.HandleOperation
+import scala.concurrent.ExecutionContext.Implicits.global
+import javax.inject.{Singleton, Inject}
 
-object GreyscaleController extends Controller {
-  lazy val imageHandler = ActorSystem("Greyscalr").actorOf(Props[ImageSupervisor], name = "ImageHandler")
+@Singleton
+class GreyscaleController @Inject() (dao: ImageOperationDAO) extends Controller {
+  lazy val imageHandler = ActorSystem("Greyscalr").actorOf(Props(classOf[ImageSupervisor], dao), name = "ImageHandler")
 
-  def list() = Action { request =>
-    val jsonList = ImageOperation.list().map(toJson(_)).toSeq
-    Ok(toJson(jsonList))
+  def list() = Action.async { request =>
+    dao.list().map { jsonList =>
+      Ok(toJson(jsonList).toString)
+    }
   }
 
   def create() = {
@@ -24,29 +30,28 @@ object GreyscaleController extends Controller {
         BadRequest("You should upload at least one file")
       }
       else {
-        val id = new ObjectId()
-        val fullPath = "/tmp/upload-" + id.toString + ".original"
+        val newId = UUID.randomUUID().toString
+        val fullPath = "/tmp/upload-" + newId.toString + ".original"
 
         files.head.ref.moveTo(new File(fullPath))
-        val status = ImageOperation.create(id.toString)
-        imageHandler ! HandleOperation(id.toString, fullPath)
+        val newOperation = new ImageOperation(newId)
+        dao.insert(newOperation)
+        imageHandler ! HandleOperation(newId.toString, fullPath)
 
-        Created(toJson(status))
+        Created(toJson(newOperation))
       }
     }
   }
 
-  def getStatus(id: String) = {
-    Action { request =>
-      try {
-        val status = ImageOperation.read(id)
-        Ok(toJson(status))
-      }
-      catch {
-        case e: NoSuchElementException => NotFound("Can't find element")
+  def getStatus(id: String) = Action.async { request =>
+    dao.find(id).map {
+      _ match {
+        case Some(status) => Ok(toJson(status))
+        case None => NotFound("Can't find element")
       }
     }
   }
+
 
 
 }

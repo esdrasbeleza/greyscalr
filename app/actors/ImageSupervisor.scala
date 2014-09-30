@@ -2,10 +2,11 @@ package actors
 
 import akka.actor.{Props, ActorSystem, Actor}
 import actors.ImageSupervisor.{OperationError, UploadDone, ImageReady, HandleOperation}
-import models.ImageOperation._
+import dao.ImageOperationDAO
 import actors.ImageEditor.ConvertToGreyscale
-import models.ImageOperationStatus
 import actors.FileUploader.UploadFile
+import models.ImageOperationStatus
+import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.Logger
 
 object ImageSupervisor {
@@ -15,7 +16,7 @@ object ImageSupervisor {
   case class OperationError(val operationId: String, val component: String, val error: String)
 }
 
-class ImageSupervisor extends Actor {
+class ImageSupervisor(val dao: ImageOperationDAO) extends Actor {
   lazy val imageEditor = ActorSystem("Greyscalr").actorOf(Props[ImageEditor], name = "ImageEditor")
   lazy val imageUploader = ActorSystem("Greyscalr").actorOf(Props[FileUploader], name = "ImageUploader")
   val logger = Logger(getClass.getName)
@@ -38,6 +39,18 @@ class ImageSupervisor extends Actor {
     case message: OperationError => {
       logger.debug(s"[${message.operationId}}] Error: ${message.error}")
       updateStatus(message.operationId, ImageOperationStatus.StatusError)
+    }
+  }
+
+  def updateStatus(id: String, newStatus: String, newUrl: Option[String] = None) {
+    dao.find(id).map {
+      _ match {
+        case Some(operation) => {
+          val updatedOperation = operation.copy(status = newStatus, url = newUrl)
+          dao.update(id, updatedOperation)
+        }
+        case None => ???
+      }
     }
   }
 
