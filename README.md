@@ -13,11 +13,18 @@ greyscaled image.
 To upload an image, you must use a POST method with the image attached to
 `/convert`. The web service will return an answer like this:
 
+
 ```json
 {
-    "id": "53cc0c70c2e67df003ba26e2",
+    "id": "37d2bb01-7dca-4ef5-9b55-91a31a9bg234",
     "status": "CREATED"
 }
+```
+
+You can use httpie for testing:
+
+```
+http -f POST http://localhost:9000/convert file@golden\ gate.jpg
 ```
 
 ## Obtaining image status using GET
@@ -26,8 +33,9 @@ Calling `/convert/{id}` using GET, you can obtain the current workflow status:
 
 ```json
 {
-    "id": "53cc0c70c2e67df003ba26e2",
-    "status": "IMAGE READY"
+    "id": "37d2bb01-7dca-4ef5-9b55-91a31a9bg234",
+    "status": "FINISHED",
+    "url": "https://greyscalr.s3.amazonaws.com/37d2bb01-7dca-4ef5-9b55-91a31a9bg234"
 }
 ```
 
